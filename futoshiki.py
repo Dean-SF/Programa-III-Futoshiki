@@ -2,7 +2,21 @@
 import tkinter as tk
 
 ################################################### Clases ##################################################
+class Generador():
+    def __init__(self,master):
+        self.master = master
+    def abrirConfiguracion(self):
+        self.ventana_configuracion = Configuracion(self.master)
+        self.ventana_configuracion.grid(row=0,column=0,sticky="nswe")
+    def cerrarConfiguracion(self):
+        self.ventana_configuracion.destroy()
 
+
+class Configuracion(tk.Frame):
+    def __init__(self,master):
+        super().__init__(master)
+        tk.Button(self,text="CERRAR",command=lambda:WindowManager.cerrarConfiguracion()).pack()
+        
 
 ################################################## Funciones ################################################
 
@@ -10,6 +24,8 @@ import tkinter as tk
 ############################################### Programa principal ##########################################
 
 ventana = tk.Tk() # Crea ventana principal
+
+WindowManager = Generador(ventana) # Administra la creación de ventanas
 
 # Hace que los contenidos de la ventana se expandan con la ventana
 ventana.rowconfigure(0,weight=1)
@@ -28,7 +44,7 @@ tk.Label(menu,text="FUTOSHIKI",font=("Papyrus",20)).grid(row=0,column=0) # Titul
 tk.Label(menu).grid(row=1,column=0)
 
 # Opciones del menu
-tk.Button(menu,text="JUGAR",font=("Papyrus"),width=10,height=1).grid(row=2,column=0)
+tk.Button(menu,text="JUGAR",font=("Papyrus"),width=10,height=1,command=lambda: WindowManager.abrirConfiguracion()).grid(row=2,column=0)
 tk.Button(menu,text="Configurar",font=("Papyrus"),width=10,height=1).grid(row=3,column=0)
 tk.Button(menu,text="Ayuda",font=("Papyrus"),width=10,height=1).grid(row=4,column=0)
 tk.Button(menu,text="Acerca de",font=("Papyrus"),width=10,height=1).grid(row=5,column=0)
