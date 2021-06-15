@@ -8,6 +8,7 @@ import tkinter as tk
 
 
 ############################################### Programa principal ##########################################
+
 ventana = tk.Tk() # Crea ventana principal
 
 # Hace que los contenidos de la ventana se expandan con la ventana
