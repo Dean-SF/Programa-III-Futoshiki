@@ -22,7 +22,6 @@ class Configuracion(tk.Frame):
 
 
 ############################################### Programa principal ##########################################
-
 ventana = tk.Tk() # Crea ventana principal
 
 WindowManager = Generador(ventana) # Administra la creación de ventanas
