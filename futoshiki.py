@@ -11,10 +11,12 @@ class Generador():
     def abrirConfiguracion(self):
         self.ventana_configuracion = Ventana_configuracion(self.master)
         self.ventana_configuracion.grid(row=0,column=0,sticky="nswe")
-    
+        ventana.geometry("435x256+804+300")
+
     # Metodo para cerrar la ventana de configuración
     def cerrarConfiguracion(self):
         self.ventana_configuracion.destroy() # Con el metodo destroy() de tkinter se cierra
+        ventana.geometry("256x256+804+300")
 
 # Clase que mantendra los datos de la configuración
 class Configuracion():
@@ -27,7 +29,6 @@ class Configuracion():
 class Ventana_configuracion(tk.Frame):
     def __init__(self,master):
         super().__init__(master)
-
 
         self.facil = tk.IntVar()
         tk.Label(self,text="1. Nivel:").grid(row=0,column=0,sticky="w")
