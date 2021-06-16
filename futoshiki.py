@@ -1,11 +1,19 @@
 ################################################## Imports ##################################################
 import tkinter as tk
-
+from tkinter import messagebox
 ################################################### Clases ##################################################
 # Clase de control de ventanas
 class Generador():
     def __init__(self,master): # Metodo constructor: inicia la clase con la ventana principal
         self.master = master
+    
+    # metodo para mostrar ventana con un mensaje de error:
+    def mensajeError(self,mensaje):
+        messagebox.showerror("ERROR",mensaje)
+
+    # metodo para mostrar ventana con un mensaje informativo:
+    def mensajeInformativo(self,mensaje):
+        messagebox.showinfo("Enhorabuena",mensaje)
 
     # Metodo para abrir la ventana de configuración
     def abrirConfiguracion(self):
@@ -20,9 +28,17 @@ class Generador():
 
 # Clase que mantendra los datos de la configuración
 class Configuracion():
+
+    # Facil = 0, Intermedio = 1, Dificil = 2
     dificultad = 0
+
+    # Si = 0, No = 1, Timer = 2
     reloj = 0
+    
+    # Horas = Indice 0, Minutos = Indice 1, Segundos = indice 2
     tiempo_reloj = (0,30,0)
+
+    # Derecha = 0, Izquierda = 1
     posicion = 0
 
 # Clase contenedora de la ventana de configuracion
@@ -77,6 +93,9 @@ class Ventana_configuracion(tk.Frame):
         entry3.grid(row=4,column=4)
         entry3.config(validate="key",validatecommand=(verificacion_minutos_segundos,"%P"))
 
+        self.horasMinutosSegundosInicial()
+
+
         tk.Label(self,text="3. Posición en la ventana del panel de dígitos:").grid(row=6,column=0,columnspan=2)
 
         self.derecha = tk.IntVar()
@@ -87,9 +106,60 @@ class Ventana_configuracion(tk.Frame):
 
         self.posicionInicial()
 
-        tk.Button(self,text="Aplicar",command=None).grid(row=8,column=0)
+        tk.Button(self,text="Aplicar",command=self.aplicarConfiguración).grid(row=8,column=0)
         tk.Button(self,text="Salir",command=lambda:WindowManager.cerrarConfiguracion()).grid(row=8,column=1)
 
+    # Metodo para aplicar la configuración
+    def aplicarConfiguración(self):
+
+        # verificación y restricción de datos
+        if self.facil.get() == 0 and self.intermedio.get() == 0 and self.dificil.get() == 0:
+            WindowManager.mensajeError("PORFAVOR ELEGIR UNA DIFICULTAD")
+            return
+        if self.reloj_si.get() == 0 and self.reloj_no.get() == 0 and self.timer.get() == 0:
+            WindowManager.mensajeError("PORFAVOR ELEGIR UN TIPO DE RELOJ")
+            return
+        if self.derecha.get() == 0 and self.izquierda.get() == 0:
+            WindowManager.mensajeError("PORFAVOR ELEGIR UNA POSICIÓN PARA EL PANEL")
+            return
+        if self.hora.get() == "" or self.minutos.get() == "" or self.segundos.get() == "":
+            WindowManager.mensajeError("PORFAVOR RELLENAR LAS HORAS, MINUTOS Y SEGUNDOS DEL RELOJ")
+            return
+
+        # Aplicar la dificultad dependiendo de cual dificultad se seleccionó
+        if self.facil.get() == 1:
+            config.dificultad = 0
+        elif self.intermedio.get() == 1:
+            config.dificultad = 1
+        elif self.dificil.get() == 1:
+            config.dificultad = 2
+
+        # Aplicar el tipo de reloj dependiendo de cual dificultad se seleccionó
+        if self.reloj_si.get() == 1:
+            config.reloj = 0
+        elif self.reloj_no.get() == 1:
+            config.reloj = 1
+        elif self.timer.get() == 1:
+            config.reloj = 2
+
+        # Aplicar la posición dependiendo de cual dificultad se seleccionó
+        if self.derecha.get() == 1:
+            config.posicion = 0
+        elif self.izquierda.get() == 1:
+            config.posicion = 1
+
+        # Aplica los valores del reloj con los asignados por el usuario
+        horas = int(self.hora.get())
+        minutos = int(self.minutos.get())
+        segundos = int(self.segundos.get())
+        config.tiempo_reloj = (horas,minutos,segundos)
+
+        # Mensaje de exito para el usuario
+        WindowManager.mensajeInformativo("LA OPERACIÓN SE REALIZO CON EXITO, SERA DEVUELVO AL MENÚ PRINCIPAL")
+
+        # Se cierra la ventana de configuración
+        WindowManager.cerrarConfiguracion()
+    
     # Metodo para colocar la dificultad que estaba en la configuración anterior
     def dificultadInicial(self):
         if config.dificultad == 0:
@@ -118,6 +188,12 @@ class Ventana_configuracion(tk.Frame):
             self.reloj_no.set(1)
         if config.reloj == 2:
             self.timer.set(1)
+
+    # Metodo para colocar las horas, minutos y segundos que estaba en la configuración anterior
+    def horasMinutosSegundosInicial(self):
+        self.hora.set(str(config.tiempo_reloj[0]))
+        self.minutos.set(str(config.tiempo_reloj[1]))
+        self.segundos.set(str(config.tiempo_reloj[2]))
 
     # Metodos para que solo se pueda elegir un tipo de reloj
     def cambioRelojSi(self):
