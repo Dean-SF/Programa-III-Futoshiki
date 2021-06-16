@@ -266,6 +266,7 @@ ventana.columnconfigure(0,weight=1)
 
 ventana.title("FUTOSHIKI") # Titulo de la ventana
 ventana.geometry("256x256+804+300") # dimensiones de la ventana
+ventana.resizable(False,False)
 
 menu = tk.Frame(ventana) # Marco que contiene el menu principal
 menu.grid(row=0,column=0) # Coloca el marco
