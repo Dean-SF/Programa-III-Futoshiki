@@ -1,6 +1,7 @@
 ################################################## Imports ##################################################
 import tkinter as tk
 from tkinter import messagebox
+from juego.jugar import Juego
 ################################################### Clases ##################################################
 # Clase de control de ventanas
 class Generador():
@@ -24,6 +25,19 @@ class Generador():
     # Metodo para cerrar la ventana de configuración
     def cerrarConfiguracion(self):
         self.ventana_configuracion.destroy() # Con el metodo destroy() de tkinter se cierra
+        ventana.geometry("256x256+804+300")
+    
+    # Metodo para abrir la ventana de configuración
+    def abrirJuego(self):
+        self.ventana_juego = Juego(self.master)
+        self.ventana_juego.grid(row=0,column=0,sticky="nswe")
+        tk.Button(self.ventana_juego,text="Salir",command=self.cerrarJuego).grid(row=50,column=0)
+        ventana.state('zoomed')
+
+    # Metodo para cerrar la ventana de configuración
+    def cerrarJuego(self):
+        self.ventana_juego.destroy() # Con el metodo destroy() de tkinter se cierra
+        ventana.state('normal')
         ventana.geometry("256x256+804+300")
 
 # Clase que mantendra los datos de la configuración
@@ -277,8 +291,8 @@ tk.Label(menu,text="FUTOSHIKI",font=("Papyrus",20)).grid(row=0,column=0) # Titul
 tk.Label(menu).grid(row=1,column=0)
 
 # Opciones del menu
-tk.Button(menu,text="JUGAR",font=("Papyrus"),width=10,height=1,command= None).grid(row=2,column=0)
-tk.Button(menu,text="Configurar",font=("Papyrus"),width=10,height=1,command= lambda: WindowManager.abrirConfiguracion()).grid(row=3,column=0)
+tk.Button(menu,text="JUGAR",font=("Papyrus"),width=10,height=1,command=WindowManager.abrirJuego).grid(row=2,column=0)
+tk.Button(menu,text="Configurar",font=("Papyrus"),width=10,height=1,command=WindowManager.abrirConfiguracion).grid(row=3,column=0)
 tk.Button(menu,text="Ayuda",font=("Papyrus"),width=10,height=1).grid(row=4,column=0)
 tk.Button(menu,text="Acerca de",font=("Papyrus"),width=10,height=1).grid(row=5,column=0)
 
