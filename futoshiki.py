@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from juego.jugar import Juego
+from juego.config import config
 ################################################### Clases ##################################################
 # Clase de control de ventanas
 class Generador():
@@ -39,21 +40,6 @@ class Generador():
         self.ventana_juego.destroy() # Con el metodo destroy() de tkinter se cierra
         ventana.state('normal')
         ventana.geometry("256x256+804+300")
-
-# Clase que mantendra los datos de la configuración
-class Configuracion():
-
-    # Facil = 0, Intermedio = 1, Dificil = 2
-    dificultad = 0
-
-    # Si = 0, No = 1, Timer = 2
-    reloj = 0
-    
-    # Horas = Indice 0, Minutos = Indice 1, Segundos = indice 2
-    tiempo_reloj = (0,30,0)
-
-    # Derecha = 0, Izquierda = 1
-    posicion = 0
 
 # Clase contenedora de la ventana de configuracion
 class Ventana_configuracion(tk.Frame):
@@ -266,7 +252,6 @@ class Ventana_configuracion(tk.Frame):
 
 
 ############################################### Programa principal ##########################################
-config = Configuracion()
 
 ventana = tk.Tk() # Crea ventana principal
 
