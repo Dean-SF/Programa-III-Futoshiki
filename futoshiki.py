@@ -1,6 +1,7 @@
 ################################################## Imports ##################################################
 import tkinter as tk
 from tkinter import messagebox
+from tkinter.constants import TRUE
 from juego.jugar import Juego
 from juego.config import config
 ################################################### Clases ##################################################
@@ -34,12 +35,14 @@ class Generador():
         self.ventana_juego.grid(row=0,column=0,sticky="nswe")
         tk.Button(self.ventana_juego,text="Salir",command=self.cerrarJuego).grid(row=50,column=0)
         ventana.state('zoomed')
+        ventana.resizable(True,True)
 
     # Metodo para cerrar la ventana de configuración
     def cerrarJuego(self):
         self.ventana_juego.destroy() # Con el metodo destroy() de tkinter se cierra
         ventana.state('normal')
         ventana.geometry("256x256+804+300")
+        ventana.resizable(False,False)
 
 # Clase contenedora de la ventana de configuracion
 class Ventana_configuracion(tk.Frame):
