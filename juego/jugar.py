@@ -1,11 +1,16 @@
 ################################################## Imports ##################################################
 import tkinter as tk
-from typing import Collection
 from juego.config import config
+import pickle
+import random
+
 ################################################### Clases ##################################################
 class Panel(tk.Frame):
     def __init__(self,master,panel_digitos):
         super().__init__(master)
+
+        # Objeto que de llamada
+        self.master = master
 
         self.panel_digitos = panel_digitos
 
@@ -266,11 +271,10 @@ class Panel(tk.Frame):
         # Matriz de espacios superiores/inferiores
         self.matriz_superior = [fila1superior,fila2superior,fila3superior,fila4superior]
 
-        self.desactivarPanel()
-
     # Metodo para cambiar el numero del panel
     def cambioNumero(self,boton):
-        boton["text"] = self.panel_digitos.digito
+        if self.master.en_progreso == True:
+            boton["text"] = self.panel_digitos.digito
     
     # Metodo para desactivar los botones del panel
     def desactivarPanel(self):
@@ -284,23 +288,50 @@ class Panel(tk.Frame):
             for boton in fila:
                 boton["state"] = tk.NORMAL
 
-    # Metodo para cargar juego de la lista de partidas
+    # Metodo para colocar los numeros del juego en los botones
     def cargarNumeros(self,coordenada,numero):
         fila = coordenada[0]
         columna = coordenada[1]
         self.matriz_botones[fila][columna]["text"] = numero
         self.matriz_botones[fila][columna]["state"] = tk.DISABLED
 
-    # Metodo para cargar juego de la lista de partidas
+    # Metodo para colocar los menores y mayores que en los laterales de los botones
     def cargarMayoreMenoresLaterales(self,coordenada,simbolo):
         fila = coordenada[0]
         columna = coordenada[1]
         self.matriz_laterales[fila][columna]["text"] = simbolo
 
+    # Metodo para colocar los menores y mayores que en la parte superior o inferior de los botones
     def cargarMayoreMenoresSuperiores(self,coordenada,simbolo):
         fila = coordenada[0]
         columna = coordenada[1]
         self.matriz_superior[fila][columna]["text"] = simbolo
+
+    # Metodo para cargar el juego en el Panel
+    def cargarPartida(self):
+        # Se elige un juego aleatorio
+        juego = 0
+
+        # Se usa la dificultad escogida por el juegador
+        dificultad = config.dificultad
+
+        # Se hace un ciclo que recorra la partida que se va a mostrar
+        for tupla in partidas[dificultad][juego]:
+
+            # Se obtiene el numero o simbolo que hay que colocar
+            simbolo_numero = tupla[0]
+
+            # Se obtienen las coordenadas donde hay que colocarlo dentro de la matriz de botones y espacios
+            coordenadas = tupla[1:]
+
+            # Con condicionales se elije cual metodo de los anteriormente creados usar para colocar los
+            # elementos en el panel
+            if simbolo_numero == ">" or tupla[0] == "<":
+                self.cargarMayoreMenoresLaterales(coordenadas,simbolo_numero)
+            elif simbolo_numero == "˅" or tupla[0] == "˄":
+                self.cargarMayoreMenoresSuperiores(coordenadas,simbolo_numero)
+            else:
+                self.cargarNumeros(coordenadas,simbolo_numero)
 
 class Digitos(tk.Frame):
     digito = 1
@@ -333,6 +364,7 @@ class Digitos(tk.Frame):
         boton["bg"] = "green"
 
 class Juego(tk.Frame):
+    en_progreso = False
     def __init__(self,master):
         super().__init__(master)
         if config.posicion == 0:
@@ -347,9 +379,15 @@ class Juego(tk.Frame):
 
         self.panel = Panel(self,self.digitos)
         self.panel.grid(row=4,column=2)
-        
+        self.panel.cargarPartida()
+
 ################################################## Funciones ################################################
 
 ############################################### Programa principal ##########################################
 font = ("papyrus",32)
 mayor_menor_font = ("Times",24)
+
+# Instrucciones para cargar las partidas precreadas del juego
+archivo_partidas = open("futoshiki2021partidas.dat","rb")
+partidas = pickle.load(archivo_partidas)
+archivo_partidas.close()
