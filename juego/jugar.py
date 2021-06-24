@@ -3,9 +3,11 @@ import tkinter as tk
 from juego.config import config
 import pickle
 import random
+from tkinter import messagebox
 
 ################################################### Clases ##################################################
 class Panel(tk.Frame):
+    mayores_menores = ()
     def __init__(self,master,panel_digitos):
         super().__init__(master)
 
@@ -262,8 +264,18 @@ class Panel(tk.Frame):
         # Fila4 Para los espacios superiores/inferiores entre botones
         fila4superior = [Superior1,Superior2,Superior3,Superior4,Superior5]
 
-        # Matriz de botones
-        self.matriz_botones = [fila1,fila2,fila3,fila4,fila5]
+        # Columnas para una matriz de botones que va por columnas
+        columna1 = [self.boton1,self.boton6,self.boton11,self.boton16,self.boton21]
+        columna2 = [self.boton2,self.boton7,self.boton12,self.boton17,self.boton22]
+        columna3 = [self.boton3,self.boton8,self.boton13,self.boton18,self.boton23]
+        columna4 = [self.boton4,self.boton9,self.boton14,self.boton19,self.boton24]
+        columna5 = [self.boton5,self.boton10,self.boton15,self.boton20,self.boton25]
+
+        # Matriz de botones por columnas
+        self.matriz_botones_columnas = [columna1,columna2,columna3,columna4,columna5]
+
+        # Matriz de botones por filas
+        self.matriz_botones_filas = [fila1,fila2,fila3,fila4,fila5]
 
         # Matriz de espacios laterales
         self.matriz_laterales = [fila1lateral,fila2lateral,fila3lateral,fila4lateral,fila5lateral]
@@ -271,20 +283,102 @@ class Panel(tk.Frame):
         # Matriz de espacios superiores/inferiores
         self.matriz_superior = [fila1superior,fila2superior,fila3superior,fila4superior]
 
+    def estaEnFilaColumna(self,boton,string):
+        if string == "COLUMNA":
+            matriz = self.matriz_botones_columnas
+        elif string == "FILA":
+            matriz = self.matriz_botones_filas
+        for fila in matriz:
+            if boton in fila:
+                for botones in fila:
+                    if botones['text'] == self.panel_digitos.digito:
+                        return True
+        return False
+
+    def ganoJuego(self):
+        for fila in self.matriz_botones_filas:
+            for boton in fila:
+                if boton['text'] == "":
+                    return False
+        return True
+
+    def es_mayor_menor_lateral(self,boton):
+        for tupla in self.mayores_menores:
+            fila = tupla[0][0]
+            columna = tupla[0][1]
+            if tupla[1] == ">" or tupla[1] == "<": 
+                if boton == self.matriz_botones_filas[fila][columna]:
+                    boton1 = self.panel_digitos.digito
+                    boton2 = self.matriz_botones_filas[fila][columna+1]['text']
+                elif boton == self.matriz_botones_filas[fila][columna+1]:
+                    boton1 = self.matriz_botones_filas[fila][columna]['text']
+                    boton2 = self.panel_digitos.digito
+                else:
+                    continue
+                if boton1 == "" or boton2 == "":
+                    return True,""
+                if tupla[1] == ">":
+                    if boton1 > boton2:
+                        return True,""
+                    return False,"MAYOR"
+                elif tupla[1] == "<":
+                    if boton1 < boton2:
+                        return True,""
+                    return False,"MENOR"
+            
+            if tupla[1] == "˅" or tupla[1] == "˄":
+                if boton == self.matriz_botones_filas[fila][columna]:
+                    boton1 = self.panel_digitos.digito
+                    boton2 = self.matriz_botones_filas[fila+1][columna]['text']
+                elif boton == self.matriz_botones_filas[fila+1][columna]:
+                    boton1 = self.matriz_botones_filas[fila][columna]['text']
+                    boton2 = self.panel_digitos.digito
+                else:
+                    continue
+                if boton1 == "" or boton2 == "":
+                    return True,""
+                if tupla[1] == "˅":
+                    if boton1 > boton2:
+                        return True,""
+                    return False,"MAYOR"
+                elif tupla[1] == "˄":
+                    if boton1 < boton2:
+                        return True,""
+                    return False,"MENOR"
+
+        return True,""
+
     # Metodo para cambiar el numero del panel
     def cambioNumero(self,boton):
         if self.master.en_progreso == True:
+            if self.estaEnFilaColumna(boton,"FILA"):
+                boton['bg'] = "red"
+                messagebox.showerror("ERROR","JUGADA NO ES VÁLIDA PORQUE EL ELEMENTO YA ESTÁ EN LA FILA")
+                boton['bg'] = "SystemButtonFace"
+                return
+            if self.estaEnFilaColumna(boton,"COLUMNA"):
+                boton['bg'] = "red"
+                messagebox.showerror("ERROR","JUGADA NO ES VÁLIDA PORQUE EL ELEMENTO YA ESTÁ EN LA COLUMNA")
+                boton['bg'] = "SystemButtonFace"
+                return
+            validacion,string = self.es_mayor_menor_lateral(boton)
+            if not(validacion):
+                boton['bg'] = "red"
+                messagebox.showerror("ERROR","JUGADA NO ES VÁLIDA PORQUE NO CUMPLE CON LA RESTRICCIÓN DE " + string)
+                boton['bg'] = "SystemButtonFace"
+                return
+            self.es_mayor_menor_lateral(boton)
             boton["text"] = self.panel_digitos.digito
-    
+            
     # Metodo para desactivar los botones del panel
     def desactivarPanel(self):
-        for fila in self.matriz_botones:
+        for fila in self.matriz_botones_filas:
             for boton in fila:
                 boton["state"] = tk.DISABLED
 
     # Metodo para activar los botones del panel
     def activarPanel(self):
-        for fila in self.matriz_botones:
+        for fila in self.matriz_botones_filas:
             for boton in fila:
                 boton["state"] = tk.NORMAL
 
@@ -292,8 +386,8 @@ class Panel(tk.Frame):
     def cargarNumeros(self,coordenada,numero):
         fila = coordenada[0]
         columna = coordenada[1]
-        self.matriz_botones[fila][columna]["text"] = numero
-        self.matriz_botones[fila][columna]["state"] = tk.DISABLED
+        self.matriz_botones_filas[fila][columna]["text"] = int(numero)
+        self.matriz_botones_filas[fila][columna]["state"] = tk.DISABLED
 
     # Metodo para colocar los menores y mayores que en los laterales de los botones
     def cargarMayoreMenoresLaterales(self,coordenada,simbolo):
@@ -327,8 +421,10 @@ class Panel(tk.Frame):
             # Con condicionales se elije cual metodo de los anteriormente creados usar para colocar los
             # elementos en el panel
             if simbolo_numero == ">" or tupla[0] == "<":
+                self.mayores_menores += ((coordenadas,simbolo_numero),)
                 self.cargarMayoreMenoresLaterales(coordenadas,simbolo_numero)
             elif simbolo_numero == "˅" or tupla[0] == "˄":
+                self.mayores_menores += ((coordenadas,simbolo_numero),)
                 self.cargarMayoreMenoresSuperiores(coordenadas,simbolo_numero)
             else:
                 self.cargarNumeros(coordenadas,simbolo_numero)
@@ -363,6 +459,25 @@ class Digitos(tk.Frame):
         self.digito = digito
         boton["bg"] = "green"
 
+class Botones(tk.Frame):
+    def __init__(self,master):
+        super().__init__(master)
+        self.master = master
+        tk.Button(self,text="INICIAR\nJUEGO",bg="red",font=fontbotones,width=9,command=self.iniciarJuego).grid(row=0,column=0)
+        tk.Label(self,text="",width=2).grid(row=0,column=1)
+        tk.Button(self,text="BORRAR\nJUGADA",bg="#00A5D1",font=fontbotones,width=9).grid(row=0,column=2)
+        tk.Label(self,text="",width=2).grid(row=0,column=3)
+        tk.Button(self,text="TERMINAR\nJUEGO",bg="green",font=fontbotones,width=9).grid(row=0,column=4)
+        tk.Label(self,text="",width=2).grid(row=0,column=5)
+        tk.Button(self,text="BORRAR\nJUEGO",bg="#4E82B8",font=fontbotones,width=9).grid(row=0,column=6)
+        tk.Label(self,text="",width=2).grid(row=0,column=7)
+        tk.Button(self,text="TOP\n10",bg="yellow",font=fontbotones,width=9).grid(row=0,column=8)
+
+    def iniciarJuego(self):
+        self.master.en_progreso = True
+
+
+        
 class Juego(tk.Frame):
     en_progreso = False
     def __init__(self,master):
@@ -381,10 +496,14 @@ class Juego(tk.Frame):
         self.panel.grid(row=4,column=2)
         self.panel.cargarPartida()
 
+        self.botones = Botones(self)
+        self.botones.grid(row=5,column=2)
+
 ################################################## Funciones ################################################
 
 ############################################### Programa principal ##########################################
 font = ("papyrus",32)
+fontbotones = ("papyrus",20)
 mayor_menor_font = ("Times",24)
 
 # Instrucciones para cargar las partidas precreadas del juego
