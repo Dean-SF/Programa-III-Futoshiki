@@ -9,13 +9,15 @@ from tkinter import messagebox
 class Panel(tk.Frame):
     mayores_menores = ()
     ctrlz = []
-    def __init__(self,master,panel_digitos):
+    def __init__(self,master,panel_digitos,manager):
         super().__init__(master)
 
         # Objeto que de llamada
         self.master = master
 
         self.panel_digitos = panel_digitos
+
+        self.WindowManager = manager
 
         # Primera fila
         self.boton1 = tk.Button(self,text="",font=font,width=3,height=1,command=lambda:self.cambioNumero(self.boton1))
@@ -379,7 +381,11 @@ class Panel(tk.Frame):
             self.ctrlz.append((fila,columna))
             self.es_mayor_menor_lateral(boton)
             boton["text"] = self.panel_digitos.digito
-            
+            if self.ganoJuego():
+                messagebox.showinfo("¡EXCELENTE!","JUEGO TERMINADO CON ÉXITO")
+                self.WindowManager.cerrarJuego()
+                self.WindowManager.abrirJuego()
+
     # Metodo para desactivar los botones del panel
     def desactivarPanel(self):
         for fila in self.matriz_botones_filas:
@@ -500,7 +506,7 @@ class Botones(tk.Frame):
         
 class Juego(tk.Frame):
     en_progreso = False
-    def __init__(self,master):
+    def __init__(self,master,manager):
         super().__init__(master)
         if config.posicion == 0:
             COLUMNA_DIGITOS = 4
@@ -512,7 +518,7 @@ class Juego(tk.Frame):
         self.digitos = Digitos(self)
         self.digitos.grid(row=4,column=COLUMNA_DIGITOS)
 
-        self.panel = Panel(self,self.digitos)
+        self.panel = Panel(self,self.digitos,manager)
         self.panel.grid(row=4,column=2)
         self.panel.cargarPartida()
 

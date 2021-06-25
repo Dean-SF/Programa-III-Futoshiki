@@ -31,7 +31,7 @@ class Generador():
     
     # Metodo para abrir la ventana de configuración
     def abrirJuego(self):
-        self.ventana_juego = Juego(self.master)
+        self.ventana_juego = Juego(self.master,WindowManager)
         self.ventana_juego.grid(row=0,column=0,sticky="nswe")
         tk.Button(self.ventana_juego,text="Salir",command=self.cerrarJuego).grid(row=50,column=0)
         ventana.state('zoomed')
