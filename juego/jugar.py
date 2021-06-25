@@ -8,6 +8,7 @@ from tkinter import messagebox
 ################################################### Clases ##################################################
 class Panel(tk.Frame):
     mayores_menores = ()
+    ctrlz = []
     def __init__(self,master,panel_digitos):
         super().__init__(master)
 
@@ -348,6 +349,13 @@ class Panel(tk.Frame):
 
         return True,""
 
+    # metodo para buscar la fila y la columna de un boton
+    def buscarFilaColumna(self,boton):
+        for fila in range(5):
+            for columna in range(5):
+                if boton == self.matriz_botones_filas[fila][columna]:
+                    return fila,columna
+
     # Metodo para cambiar el numero del panel
     def cambioNumero(self,boton):
         if self.master.en_progreso == True:
@@ -367,6 +375,8 @@ class Panel(tk.Frame):
                 messagebox.showerror("ERROR","JUGADA NO ES VÁLIDA PORQUE NO CUMPLE CON LA RESTRICCIÓN DE " + string)
                 boton['bg'] = "SystemButtonFace"
                 return
+            fila,columna = self.buscarFilaColumna(boton)
+            self.ctrlz.append((fila,columna))
             self.es_mayor_menor_lateral(boton)
             boton["text"] = self.panel_digitos.digito
             
@@ -383,11 +393,12 @@ class Panel(tk.Frame):
                 boton["state"] = tk.NORMAL
 
     # Metodo para colocar los numeros del juego en los botones
-    def cargarNumeros(self,coordenada,numero):
+    def cargarNumeros(self,coordenada,numero,desabilitar):
         fila = coordenada[0]
         columna = coordenada[1]
-        self.matriz_botones_filas[fila][columna]["text"] = int(numero)
-        self.matriz_botones_filas[fila][columna]["state"] = tk.DISABLED
+        self.matriz_botones_filas[fila][columna]["text"] = numero
+        if desabilitar:
+            self.matriz_botones_filas[fila][columna]["state"] = tk.DISABLED
 
     # Metodo para colocar los menores y mayores que en los laterales de los botones
     def cargarMayoreMenoresLaterales(self,coordenada,simbolo):
@@ -427,7 +438,8 @@ class Panel(tk.Frame):
                 self.mayores_menores += ((coordenadas,simbolo_numero),)
                 self.cargarMayoreMenoresSuperiores(coordenadas,simbolo_numero)
             else:
-                self.cargarNumeros(coordenadas,simbolo_numero)
+                simbolo_numero = int(simbolo_numero)
+                self.cargarNumeros(coordenadas,simbolo_numero,True)
 
 class Digitos(tk.Frame):
     digito = 1
@@ -460,12 +472,13 @@ class Digitos(tk.Frame):
         boton["bg"] = "green"
 
 class Botones(tk.Frame):
-    def __init__(self,master):
+    def __init__(self,master,panel):
         super().__init__(master)
         self.master = master
+        self.panel = panel
         tk.Button(self,text="INICIAR\nJUEGO",bg="red",font=fontbotones,width=9,command=self.iniciarJuego).grid(row=0,column=0)
         tk.Label(self,text="",width=2).grid(row=0,column=1)
-        tk.Button(self,text="BORRAR\nJUGADA",bg="#00A5D1",font=fontbotones,width=9).grid(row=0,column=2)
+        tk.Button(self,text="BORRAR\nJUGADA",bg="#00A5D1",font=fontbotones,width=9,command=self.borrarJugada).grid(row=0,column=2)
         tk.Label(self,text="",width=2).grid(row=0,column=3)
         tk.Button(self,text="TERMINAR\nJUEGO",bg="green",font=fontbotones,width=9).grid(row=0,column=4)
         tk.Label(self,text="",width=2).grid(row=0,column=5)
@@ -476,6 +489,13 @@ class Botones(tk.Frame):
     def iniciarJuego(self):
         self.master.en_progreso = True
 
+    def borrarJugada(self):
+        if self.master.en_progreso:
+            if self.panel.ctrlz == []:
+                messagebox.showerror("ERROR","NO HAY MÁS JUGADAS")
+                return
+            ultima_jugada = self.panel.ctrlz.pop()
+            self.panel.cargarNumeros(ultima_jugada,"",False)
 
         
 class Juego(tk.Frame):
@@ -496,7 +516,7 @@ class Juego(tk.Frame):
         self.panel.grid(row=4,column=2)
         self.panel.cargarPartida()
 
-        self.botones = Botones(self)
+        self.botones = Botones(self,self.panel)
         self.botones.grid(row=5,column=2)
 
 ################################################## Funciones ################################################
