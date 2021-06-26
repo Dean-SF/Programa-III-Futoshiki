@@ -1,4 +1,5 @@
 ################################################## Imports ##################################################
+from multiprocessing.context import Process
 import tkinter as tk
 from juego.config import config
 import pickle
@@ -9,7 +10,7 @@ from tkinter import messagebox
 class Panel(tk.Frame):
     mayores_menores = ()
     ctrlz = []
-    def __init__(self,master,panel_digitos,manager):
+    def __init__(self,master,panel_digitos,manager,reloj):
         super().__init__(master)
 
         # Objeto que de llamada
@@ -18,6 +19,8 @@ class Panel(tk.Frame):
         self.panel_digitos = panel_digitos
 
         self.WindowManager = manager
+
+        self.reloj = reloj
 
         # Primera fila
         self.boton1 = tk.Button(self,text="",font=font,width=3,height=1,command=lambda:self.cambioNumero(self.boton1))
@@ -382,6 +385,7 @@ class Panel(tk.Frame):
             self.es_mayor_menor_lateral(boton)
             boton["text"] = self.panel_digitos.digito
             if self.ganoJuego():
+                self.reloj.detenerReloj()
                 messagebox.showinfo("¡EXCELENTE!","JUEGO TERMINADO CON ÉXITO")
                 self.WindowManager.cerrarJuego()
                 self.WindowManager.abrirJuego()
@@ -447,6 +451,8 @@ class Panel(tk.Frame):
                 simbolo_numero = int(simbolo_numero)
                 self.cargarNumeros(coordenadas,simbolo_numero,True)
 
+
+
 class Digitos(tk.Frame):
     digito = 1
     def __init__(self,master):
@@ -478,22 +484,43 @@ class Digitos(tk.Frame):
         boton["bg"] = "green"
 
 class Botones(tk.Frame):
-    def __init__(self,master,panel):
+    def __init__(self,master,panel,reloj,WindowManager):
         super().__init__(master)
         self.master = master
         self.panel = panel
-        tk.Button(self,text="INICIAR\nJUEGO",bg="red",font=fontbotones,width=9,command=self.iniciarJuego).grid(row=0,column=0)
+        self.reloj = reloj
+        self.WindowManager = WindowManager
+
+        self.iniciar = tk.Button(self,text="INICIAR\nJUEGO",bg="red",font=fontbotones,width=9,command=self.iniciarJuego)
+        self.iniciar.grid(row=0,column=0)
+
         tk.Label(self,text="",width=2).grid(row=0,column=1)
-        tk.Button(self,text="BORRAR\nJUGADA",bg="#00A5D1",font=fontbotones,width=9,command=self.borrarJugada).grid(row=0,column=2)
+
+        self.jugada = tk.Button(self,text="BORRAR\nJUGADA",bg="#00A5D1",font=fontbotones,width=9,command=self.borrarJugada,state=tk.DISABLED)
+        self.jugada.grid(row=0,column=2)
+
         tk.Label(self,text="",width=2).grid(row=0,column=3)
-        tk.Button(self,text="TERMINAR\nJUEGO",bg="green",font=fontbotones,width=9).grid(row=0,column=4)
+
+        self.terminar = tk.Button(self,text="TERMINAR\nJUEGO",bg="green",font=fontbotones,width=9,command=self.terminarJuego,state=tk.DISABLED)
+        self.terminar.grid(row=0,column=4)
+
         tk.Label(self,text="",width=2).grid(row=0,column=5)
-        tk.Button(self,text="BORRAR\nJUEGO",bg="#4E82B8",font=fontbotones,width=9).grid(row=0,column=6)
+
+        self.borrar = tk.Button(self,text="BORRAR\nJUEGO",bg="#4E82B8",font=fontbotones,width=9,state=tk.DISABLED)
+        self.borrar.grid(row=0,column=6)
+
         tk.Label(self,text="",width=2).grid(row=0,column=7)
+
         tk.Button(self,text="TOP\n10",bg="yellow",font=fontbotones,width=9).grid(row=0,column=8)
+
 
     def iniciarJuego(self):
         self.master.en_progreso = True
+        self.iniciar['state'] = tk.DISABLED
+        self.jugada['state'] = tk.NORMAL
+        self.terminar['state'] = tk.NORMAL
+        self.borrar['state'] = tk.NORMAL
+        self.reloj.iniciarReloj()
 
     def borrarJugada(self):
         if self.master.en_progreso:
@@ -502,8 +529,67 @@ class Botones(tk.Frame):
                 return
             ultima_jugada = self.panel.ctrlz.pop()
             self.panel.cargarNumeros(ultima_jugada,"",False)
+    
+    def terminarJuego(self):
+        respuesta = messagebox.askyesno("¿DESEA CONTINUAR?","¿ESTÁ SEGURO DE TERMINAR EL JUEGO?")
+        if respuesta:
+            self.WindowManager.cerrarJuego()
+            self.WindowManager.abrirJuego()
 
-        
+
+
+class Reloj(tk.Frame):
+    activador = True
+    ultima_duración = 0
+    tiempo = 0
+    def __init__(self,master):
+        super().__init__(master)
+
+        tk.Label(self,text="Tiempo: ",font=fontbotones).grid(row=0,column=0)
+        self.horas = tk.Label(self,text="00",font=fontbotones)
+        self.horas.grid(row=0,column=1)
+        tk.Label(self,text=":",font=fontbotones).grid(row=0,column=2)
+        self.minutos = tk.Label(self,text="00",font=fontbotones)
+        self.minutos.grid(row=0,column=3)
+        tk.Label(self,text=":",font=fontbotones).grid(row=0,column=4)
+        self.segundos = tk.Label(self,text="00",font=fontbotones)
+        self.segundos.grid(row=0,column=5)
+
+        if config.reloj == 2:
+            self.horas['text'] = "{:02d}".format(config.tiempo_reloj[0])
+            self.minutos['text'] = "{:02d}".format(config.tiempo_reloj[1])
+            self.segundos['text'] = "{:02d}".format(config.tiempo_reloj[2])
+    
+    def cronometroTimer(self):
+        horas = self.tiempo//3600
+        tiempo = self.tiempo%3600
+        minutos = tiempo//60
+        segundos = tiempo%60
+        self.horas['text'] = "{:02d}".format(horas)
+        self.minutos['text'] = "{:02d}".format(minutos)
+        self.segundos['text'] = "{:02d}".format(segundos)
+        self.tiempo += self.sumando
+        if self.activador:
+            self.after(1000,lambda:self.cronometroTimer())
+
+    def iniciarReloj(self):
+        self.activador = True
+        self.tiempo = 0
+        self.sumando = 1
+        if config.reloj == 2:
+            self.tiempo += 3600*config.tiempo_reloj[0]
+            self.tiempo += 60*config.tiempo_reloj[1]
+            self.tiempo += config.tiempo_reloj[2]
+            self.sumando = -1
+        self.cronometroTimer()
+
+    def detenerReloj(self):
+        self.activador = False
+
+    def continuarReloj(self):
+        self.activador = True
+        self.cronometroTimer()
+
 class Juego(tk.Frame):
     en_progreso = False
     def __init__(self,master,manager):
@@ -518,13 +604,21 @@ class Juego(tk.Frame):
         self.digitos = Digitos(self)
         self.digitos.grid(row=4,column=COLUMNA_DIGITOS)
 
-        self.panel = Panel(self,self.digitos,manager)
+        self.reloj = Reloj(self)
+        if config.reloj != 1:
+            self.reloj.grid(row=6,column=2)
+
+        self.panel = Panel(self,self.digitos,manager,self.reloj)
         self.panel.grid(row=4,column=2)
         self.panel.cargarPartida()
 
-        self.botones = Botones(self,self.panel)
+        self.botones = Botones(self,self.panel,self.reloj,manager)
         self.botones.grid(row=5,column=2)
 
+        
+
+    def juegoPerdido(self):
+        pass
 ################################################## Funciones ################################################
 
 ############################################### Programa principal ##########################################
