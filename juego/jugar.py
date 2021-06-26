@@ -545,7 +545,7 @@ class Botones(tk.Frame):
             self.WindowManager.abrirJuego()
     
     def borrarJuego(self):
-        respuesta = messagebox.askyesno("¿DESEA CONTINUAR?","¿¿ESTÁ SEGURO DE BORRAR EL JUEGO?")
+        respuesta = messagebox.askyesno("¿DESEA CONTINUAR?","¿ESTÁ SEGURO DE BORRAR EL JUEGO?")
         if respuesta:
             config.cargar_juego = True
             self.WindowManager.cerrarJuego()
@@ -556,8 +556,11 @@ class Reloj(tk.Frame):
     activador = True
     ultima_duración = 0
     tiempo = 0
-    def __init__(self,master):
+    cambio_cronometro = False
+    def __init__(self,master,WindowManager):
         super().__init__(master)
+
+        self.WindowManager = WindowManager
 
         tk.Label(self,text="Tiempo: ",font=fontbotones).grid(row=0,column=0)
         self.horas = tk.Label(self,text="00",font=fontbotones)
@@ -582,6 +585,15 @@ class Reloj(tk.Frame):
         self.horas['text'] = "{:02d}".format(horas)
         self.minutos['text'] = "{:02d}".format(minutos)
         self.segundos['text'] = "{:02d}".format(segundos)
+        if config.reloj == 2 and self.tiempo == 0:
+            confirmacion = messagebox.askyesno("TIEMPO EXPIRADO","¿DESEA CONTINUAR EL MISMO JUEGO?")
+            if confirmacion:
+                self.cambio_cronometro = True
+                return self.reiniciarEnCronometro()
+            else:
+                messagebox.showwarning("¡JUEGO PERDIDO!","SERA DEVUELTO A OTRO JUEGO")
+                self.WindowManager.cerrarJuego()
+                return self.WindowManager.abrirJuego()
         self.tiempo += self.sumando
         if self.activador:
             self.after(1000,lambda:self.cronometroTimer())
@@ -597,6 +609,13 @@ class Reloj(tk.Frame):
             self.sumando = -1
         self.cronometroTimer()
 
+    def reiniciarEnCronometro(self):
+        self.tiempo += 3600*config.tiempo_reloj[0]
+        self.tiempo += 60*config.tiempo_reloj[1]
+        self.tiempo += config.tiempo_reloj[2]
+        self.sumando = 1
+        self.cronometroTimer()
+    
     def detenerReloj(self):
         self.activador = False
 
@@ -618,7 +637,7 @@ class Juego(tk.Frame):
         self.digitos = Digitos(self)
         self.digitos.grid(row=4,column=COLUMNA_DIGITOS)
 
-        self.reloj = Reloj(self)
+        self.reloj = Reloj(self,manager)
         if config.reloj != 1:
             self.reloj.grid(row=6,column=2)
 
