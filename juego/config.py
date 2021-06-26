@@ -14,5 +14,11 @@ class Configuracion():
     # Derecha = 0, Izquierda = 1
     posicion = 0
 
+    # variables que guardan el ultimo juego jugado
+    juego_actual = 0
+
+    dificultad_actual = 0
+
+    cargar_juego = False
 ############################################### Programa principal ##########################################
 config = Configuracion()

@@ -425,10 +425,18 @@ class Panel(tk.Frame):
     # Metodo para cargar el juego en el Panel
     def cargarPartida(self):
         # Se elige un juego aleatorio
-        juego = 0
+        juego = random.randint(0,2)
 
         # Se usa la dificultad escogida por el juegador
         dificultad = config.dificultad
+        
+        if config.cargar_juego:
+            config.cargar_juego = False
+            juego = config.juego_actual
+            dificultad = config.dificultad_actual
+
+        config.juego_actual = juego
+        config.dificultad_actual = dificultad
 
         # Se hace un ciclo que recorra la partida que se va a mostrar
         for tupla in partidas[dificultad][juego]:
@@ -506,7 +514,7 @@ class Botones(tk.Frame):
 
         tk.Label(self,text="",width=2).grid(row=0,column=5)
 
-        self.borrar = tk.Button(self,text="BORRAR\nJUEGO",bg="#4E82B8",font=fontbotones,width=9,state=tk.DISABLED)
+        self.borrar = tk.Button(self,text="BORRAR\nJUEGO",bg="#4E82B8",font=fontbotones,width=9,command=self.borrarJuego,state=tk.DISABLED)
         self.borrar.grid(row=0,column=6)
 
         tk.Label(self,text="",width=2).grid(row=0,column=7)
@@ -535,7 +543,13 @@ class Botones(tk.Frame):
         if respuesta:
             self.WindowManager.cerrarJuego()
             self.WindowManager.abrirJuego()
-
+    
+    def borrarJuego(self):
+        respuesta = messagebox.askyesno("¿DESEA CONTINUAR?","¿¿ESTÁ SEGURO DE BORRAR EL JUEGO?")
+        if respuesta:
+            config.cargar_juego = True
+            self.WindowManager.cerrarJuego()
+            self.WindowManager.abrirJuego()
 
 
 class Reloj(tk.Frame):
