@@ -33,7 +33,7 @@ class Generador():
     def abrirJuego(self):
         self.ventana_juego = Juego(self.master,WindowManager)
         self.ventana_juego.grid(row=0,column=0,sticky="nswe")
-        tk.Button(self.ventana_juego,text="Salir",command=self.cerrarJuego).grid(row=50,column=0)
+        tk.Button(self.ventana_juego,text="Salir",command=self.cerrarJuego,font=("times",14)).place(x=1650,y=912)
         ventana.state('zoomed')
         ventana.resizable(True,True)
 

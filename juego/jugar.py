@@ -493,6 +493,7 @@ class Digitos(tk.Frame):
         boton["bg"] = "green"
 
 class Botones(tk.Frame):
+    cargado = False
     def __init__(self,master,panel,reloj,WindowManager):
         super().__init__(master)
         self.master = master
@@ -528,12 +529,17 @@ class Botones(tk.Frame):
             messagebox.showerror("ERROR","POR FAVOR COLOQUE SU NOMBRE ANTES DE EMPEZAR")
             return
         self.master.en_progreso = True
+        self.master.guardar['state'] = tk.NORMAL
+        self.master.cargar['state'] = tk.DISABLED
         self.iniciar['state'] = tk.DISABLED
         self.jugada['state'] = tk.NORMAL
         self.terminar['state'] = tk.NORMAL
         self.borrar['state'] = tk.NORMAL
         self.master.nombre_jugadorEntry['state'] = tk.DISABLED
-        self.reloj.iniciarReloj()
+        if self.cargado:
+            self.reloj.continuarReloj()
+        else:
+            self.reloj.iniciarReloj()
 
     def borrarJugada(self):
         if self.master.en_progreso:
@@ -583,13 +589,7 @@ class Reloj(tk.Frame):
             self.segundos['text'] = "{:02d}".format(config.tiempo_reloj[2])
     
     def cronometroTimer(self):
-        horas = self.tiempo//3600
-        tiempo = self.tiempo%3600
-        minutos = tiempo//60
-        segundos = tiempo%60
-        self.horas['text'] = "{:02d}".format(horas)
-        self.minutos['text'] = "{:02d}".format(minutos)
-        self.segundos['text'] = "{:02d}".format(segundos)
+        self.actualizarReloj()
         if config.reloj == 2 and self.tiempo == 0:
             confirmacion = messagebox.askyesno("TIEMPO EXPIRADO","¿DESEA CONTINUAR EL MISMO JUEGO?")
             if confirmacion:
@@ -628,6 +628,15 @@ class Reloj(tk.Frame):
         self.activador = True
         self.cronometroTimer()
 
+    def actualizarReloj(self):
+        horas = self.tiempo//3600
+        tiempo = self.tiempo%3600
+        minutos = tiempo//60
+        segundos = tiempo%60
+        self.horas['text'] = "{:02d}".format(horas)
+        self.minutos['text'] = "{:02d}".format(minutos)
+        self.segundos['text'] = "{:02d}".format(segundos)
+
 class Juego(tk.Frame):
     en_progreso = False
     def __init__(self,master,manager):
@@ -639,12 +648,13 @@ class Juego(tk.Frame):
             x_digitos = 510
             y_digitos = 180
         
+        self.WindowManager = manager
+
         self.digitos = Digitos(self)
         self.digitos.place(x=x_digitos,y=y_digitos)     #.grid(row=4,column=COLUMNA_DIGITOS)
 
-        self.reloj = Reloj(self,manager)
-        if config.reloj != 1:
-            self.reloj.place(x=90,y=915) #.grid(row=6,column=2)
+        self.reloj = Reloj(self,self.WindowManager)
+        self.mostarReloj()
 
         self.panel = Panel(self,self.digitos,manager,self.reloj)
         self.panel.place(x=590,y=100) #.grid(row=4,column=2)
@@ -653,15 +663,6 @@ class Juego(tk.Frame):
         self.botones = Botones(self,self.panel,self.reloj,manager)
         self.botones.place(x=425,y=875)  #.grid(row=5,column=2)
 
-        if config.dificultad == 0:
-            nivel = "FÁCIL"
-            x_nivel = 815
-        elif config.dificultad == 1:
-            nivel = "INTERMEDIO"
-            x_nivel = 750
-        elif config.dificultad == 2:
-            nivel = "DIFÍCIL"
-            x_nivel = 815
         
         self.nombre_jugador = tk.StringVar()
 
@@ -670,17 +671,125 @@ class Juego(tk.Frame):
 
         tk.Label(self,text="Nombre del jugador:",font=fontbotones).place(x=590,y=50)
 
-        tk.Label(self,text="NIVEL "+nivel,font=fontbotones).place(x=x_nivel,y=0)
+        self.nivel = tk.Label(self,text="",font=fontbotones)
+        self.mostrarNivel()
 
-        self.guardar = tk.Button(self,text="GUARDAR JUEGO",font=("times",14),width=15)
+        self.guardar = tk.Button(self,text="GUARDAR JUEGO",font=("times",14),width=15,state=tk.DISABLED,command=self.guardarJuego)
         self.guardar.place(x=1450,y=875)
 
-        self.cargar = tk.Button(self,text="CARGAR JUEGO",font=("times",14),width=15)
+        self.cargar = tk.Button(self,text="CARGAR JUEGO",font=("times",14),width=15,command=self.cargarJuego)
         self.cargar.place(x=1450,y=950)
-        
 
-    def juegoPerdido(self):
-        pass
+    def mostarReloj(self):
+        
+        if config.reloj != 1:
+            self.reloj.place(x=90,y=915)
+
+    def mostrarNivel(self):
+        self.nivel.destroy()
+
+        if config.dificultad_actual == 0:
+            nivel = "FÁCIL"
+            x_nivel = 815
+        elif config.dificultad_actual == 1:
+            nivel = "INTERMEDIO"
+            x_nivel = 750
+        elif config.dificultad_actual == 2:
+            nivel = "DIFÍCIL"
+            x_nivel = 815
+        
+        self.nivel = tk.Label(self,text="NIVEL "+nivel,font=fontbotones)
+        self.nivel.place(x=x_nivel,y=0)
+
+    def matrizBotones(self):
+        matriz_final = []
+        for fila in self.panel.matriz_botones_filas:
+            fila_temporal = []
+            for boton in fila:
+                tupla = (boton["text"],)
+                tupla += (boton["state"],)
+                fila_temporal.append(tupla)
+            matriz_final.append(fila_temporal)
+        return matriz_final
+    
+    def matrizMayoresMenores(self,matriz):
+        matriz_final = []
+        for fila in matriz:
+            fila_temporal = []
+            for label in fila:
+                fila_temporal.append(label["text"])
+            matriz_final.append(fila_temporal)
+        return matriz_final
+
+    def guardarJuego(self):
+        self.reloj.detenerReloj()
+        archivo_juego = open("futoshiki2021juegoactual.dat","wb")
+        pickle.dump(self.matrizBotones(),archivo_juego)
+        pickle.dump(self.matrizMayoresMenores(self.panel.matriz_laterales),archivo_juego)
+        pickle.dump(self.matrizMayoresMenores(self.panel.matriz_superior),archivo_juego)
+        pickle.dump(config.dificultad_actual,archivo_juego)
+        pickle.dump(config.juego_actual,archivo_juego)
+        pickle.dump(config.reloj,archivo_juego)
+        pickle.dump(self.reloj.tiempo,archivo_juego)
+        pickle.dump(self.reloj.sumando,archivo_juego)
+        pickle.dump(self.reloj.cambio_cronometro,archivo_juego)
+        pickle.dump(self.nombre_jugador.get(),archivo_juego)
+        pickle.dump(self.panel.ctrlz,archivo_juego)
+        archivo_juego.close()
+        messagebox.showinfo("OPERACIÓN EXITOSA","SU JUEGO SE HA GUARDADO, SERA PRESENTADO CON UNO NUEVO")
+        self.WindowManager.cerrarJuego()
+        self.WindowManager.abrirJuego()
+
+    def cargarJuego(self):
+        try:
+            archivo_juego = open("futoshiki2021juegoactual.dat","rb")
+        except FileNotFoundError:
+            messagebox.showerror("ERROR","NO EXISTE NINGUNA PARTIDA GUARDADA CON ANTERIORIDAD")
+            return
+        matriz_botones_filas = pickle.load(archivo_juego)
+        matriz_laterales = pickle.load(archivo_juego)
+        matriz_superior = pickle.load(archivo_juego)
+        dificultad = pickle.load(archivo_juego)
+        juego = pickle.load(archivo_juego)
+        reloj = pickle.load(archivo_juego)
+        reloj_tiempo = pickle.load(archivo_juego)
+        reloj_sumando = pickle.load(archivo_juego)
+        reloj_cambio_cronometro = pickle.load(archivo_juego)
+        nombre_jugador = pickle.load(archivo_juego)
+        self.panel.ctrlz = pickle.load(archivo_juego)
+        archivo_juego.close()
+
+        for fila in range(5):
+            for columna in range(5):
+                self.panel.matriz_botones_filas[fila][columna]['state'] = matriz_botones_filas[fila][columna][1]
+                self.panel.matriz_botones_filas[fila][columna]['text'] = matriz_botones_filas[fila][columna][0]
+        
+        for fila in range(5):
+            for columna in range(4):
+                self.panel.matriz_laterales[fila][columna]['text'] = matriz_laterales[fila][columna]
+        
+        for fila in range(4):
+            for columna in range(5):
+                self.panel.matriz_superior[fila][columna]['text'] = matriz_superior[fila][columna]
+        config.dificultad_actual = dificultad
+        config.juego_actual = juego
+        if config.reloj != reloj:
+            mensaje = "SE HA CARGADO SU JUEGO, PRESIONE 'INICIAR JUEGO' PARA CONTINUARLO. \
+            \nADICIONALMENTE SE CAMBIO LA CONFIGURACIÓN DE RELOJ PARA PARIDAD CON ESTA PARTIDA"
+        else:
+            mensaje = "SE HA CARGADO SU JUEGO, PRESIONE 'INICIAR JUEGO' PARA CONTINUARLO"
+        config.reloj = reloj
+        self.mostarReloj()
+        self.reloj.tiempo = reloj_tiempo
+        self.reloj.sumando = reloj_sumando
+        self.reloj.cambio_cronometro = reloj_cambio_cronometro
+        self.nombre_jugador.set(nombre_jugador)
+        self.nombre_jugadorEntry['state'] = tk.DISABLED
+        self.mostrarNivel()
+        self.reloj.actualizarReloj()
+        messagebox.showinfo("OPERACIÓN EXITOSA",mensaje)
+        self.botones.cargado = True
+                
 ################################################## Funciones ################################################
 
 ############################################### Programa principal ##########################################
