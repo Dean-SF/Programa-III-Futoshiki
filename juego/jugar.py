@@ -1,6 +1,7 @@
 ################################################## Imports ##################################################
 from multiprocessing.context import Process
 import tkinter as tk
+from tkinter.constants import X
 from juego.config import config
 import pickle
 import random
@@ -523,11 +524,15 @@ class Botones(tk.Frame):
 
 
     def iniciarJuego(self):
+        if self.master.nombre_jugador.get() == "":
+            messagebox.showerror("ERROR","POR FAVOR COLOQUE SU NOMBRE ANTES DE EMPEZAR")
+            return
         self.master.en_progreso = True
         self.iniciar['state'] = tk.DISABLED
         self.jugada['state'] = tk.NORMAL
         self.terminar['state'] = tk.NORMAL
         self.borrar['state'] = tk.NORMAL
+        self.master.nombre_jugadorEntry['state'] = tk.DISABLED
         self.reloj.iniciarReloj()
 
     def borrarJugada(self):
@@ -628,26 +633,50 @@ class Juego(tk.Frame):
     def __init__(self,master,manager):
         super().__init__(master)
         if config.posicion == 0:
-            COLUMNA_DIGITOS = 4
-            tk.Label(self).grid(row=4,column=3)
+            x_digitos = 1250
+            y_digitos = 180
         elif config.posicion == 1:
-            COLUMNA_DIGITOS = 0
-            tk.Label(self).grid(row=4,column=1)
-
+            x_digitos = 510
+            y_digitos = 180
+        
         self.digitos = Digitos(self)
-        self.digitos.grid(row=4,column=COLUMNA_DIGITOS)
+        self.digitos.place(x=x_digitos,y=y_digitos)     #.grid(row=4,column=COLUMNA_DIGITOS)
 
         self.reloj = Reloj(self,manager)
         if config.reloj != 1:
-            self.reloj.grid(row=6,column=2)
+            self.reloj.place(x=90,y=915) #.grid(row=6,column=2)
 
         self.panel = Panel(self,self.digitos,manager,self.reloj)
-        self.panel.grid(row=4,column=2)
+        self.panel.place(x=590,y=100) #.grid(row=4,column=2)
         self.panel.cargarPartida()
 
         self.botones = Botones(self,self.panel,self.reloj,manager)
-        self.botones.grid(row=5,column=2)
+        self.botones.place(x=425,y=875)  #.grid(row=5,column=2)
 
+        if config.dificultad == 0:
+            nivel = "FÁCIL"
+            x_nivel = 815
+        elif config.dificultad == 1:
+            nivel = "INTERMEDIO"
+            x_nivel = 750
+        elif config.dificultad == 2:
+            nivel = "DIFÍCIL"
+            x_nivel = 815
+        
+        self.nombre_jugador = tk.StringVar()
+
+        self.nombre_jugadorEntry = tk.Entry(self,textvariable=self.nombre_jugador,width=26,font=fontbotones)
+        self.nombre_jugadorEntry.place(x=840,y=50)
+
+        tk.Label(self,text="Nombre del jugador:",font=fontbotones).place(x=590,y=50)
+
+        tk.Label(self,text="NIVEL "+nivel,font=fontbotones).place(x=x_nivel,y=0)
+
+        self.guardar = tk.Button(self,text="GUARDAR JUEGO",font=("times",14),width=15)
+        self.guardar.place(x=1450,y=875)
+
+        self.cargar = tk.Button(self,text="CARGAR JUEGO",font=("times",14),width=15)
+        self.cargar.place(x=1450,y=950)
         
 
     def juegoPerdido(self):
