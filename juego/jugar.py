@@ -362,6 +362,22 @@ class Panel(tk.Frame):
                 if boton == self.matriz_botones_filas[fila][columna]:
                     return fila,columna
 
+    # metodo para ordenar el top10
+    def ordenarTop10(self):
+        lista_temporal = []
+        lista_salida = []
+        for jugada in config.top10[config.dificultad_actual]:
+            lista_temporal.append(jugada[0])
+        indices = lista_temporal.copy()
+        while lista_temporal != []:
+            elemento = min(lista_temporal)
+            indice = indices.index(elemento)
+            indice2 = lista_temporal.index(elemento)
+            del lista_temporal[indice2]
+            lista_salida.append(config.top10[config.dificultad_actual][indice])
+            print(lista_salida)
+        config.top10[config.dificultad_actual] = lista_salida
+
     # Metodo para cambiar el numero del panel
     def cambioNumero(self,boton):
         if self.master.en_progreso == True:
@@ -388,6 +404,14 @@ class Panel(tk.Frame):
             if self.ganoJuego():
                 self.reloj.detenerReloj()
                 messagebox.showinfo("¡EXCELENTE!","JUEGO TERMINADO CON ÉXITO")
+                if config.reloj == 2 and not(self.reloj.cambio_cronometro):
+                    tiempo1 =  3600*config.tiempo_reloj[0]
+                    tiempo1 += 60*config.tiempo_reloj[1]
+                    tiempo1 += config.tiempo_reloj[2]
+                    self.reloj.tiempo = tiempo1 - self.reloj.tiempo
+
+                config.top10[config.dificultad_actual].append((self.reloj.tiempo,self.master.nombre_jugador.get()))
+                self.ordenarTop10()
                 self.WindowManager.cerrarJuego()
                 self.WindowManager.abrirJuego()
 
@@ -460,6 +484,9 @@ class Panel(tk.Frame):
                 simbolo_numero = int(simbolo_numero)
                 self.cargarNumeros(coordenadas,simbolo_numero,True)
 
+class Top10(tk.Frame):
+    def __init__(self,master):
+        super().__init__(master)
 
 
 class Digitos(tk.Frame):
@@ -649,7 +676,7 @@ class Juego(tk.Frame):
             y_digitos = 180
         
         self.WindowManager = manager
-
+        
         self.digitos = Digitos(self)
         self.digitos.place(x=x_digitos,y=y_digitos)     #.grid(row=4,column=COLUMNA_DIGITOS)
 

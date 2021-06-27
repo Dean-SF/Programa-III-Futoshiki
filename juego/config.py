@@ -20,5 +20,8 @@ class Configuracion():
     dificultad_actual = 0
 
     cargar_juego = False
+
+    top10 = [[],[],[]]
+    
 ############################################### Programa principal ##########################################
 config = Configuracion()
