@@ -1,3 +1,6 @@
+################################################## Imports ##################################################
+import pickle
+
 ################################################### Clases ##################################################
 # Clase que mantendra los datos de la configuración
 class Configuracion():
@@ -25,3 +28,9 @@ class Configuracion():
     
 ############################################### Programa principal ##########################################
 config = Configuracion()
+try:
+    archivo_top = open("futoshiki2021top10.dat","rb")
+    config.top10 = pickle.load(archivo_top)
+    archivo_top.close()
+except:
+    pass

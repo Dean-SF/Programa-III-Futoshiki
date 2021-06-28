@@ -375,8 +375,7 @@ class Panel(tk.Frame):
             indice2 = lista_temporal.index(elemento)
             del lista_temporal[indice2]
             lista_salida.append(config.top10[config.dificultad_actual][indice])
-            print(lista_salida)
-        config.top10[config.dificultad_actual] = lista_salida
+        config.top10[config.dificultad_actual] = lista_salida[:10]
 
     # Metodo para cambiar el numero del panel
     def cambioNumero(self,boton):
@@ -487,6 +486,64 @@ class Panel(tk.Frame):
 class Top10(tk.Frame):
     def __init__(self,master):
         super().__init__(master)
+        top_facil = tk.Frame(self)
+        top_intermedio = tk.Frame(self)
+        top_dificil = tk.Frame(self)
+
+        tk.Label(self,text="NIVEL FACIL",font=mayor_menor_font).place(x=180,y=150)
+        tk.Label(self,text="NIVEL INTERMEDIO",font=mayor_menor_font).place(x=810,y=150)
+        tk.Label(self,text="NIVEL DIFICIL",font=mayor_menor_font).place(x=1560,y=150)
+
+        tk.Button(self,text="volver",font=mayor_menor_font,command=self.master.cerrarTop10).place(x=900,y=800)
+
+        top_facil.place(x=100,y=200)
+        top_intermedio.place(x=800,y=200)
+        top_dificil.place(x=1500,y=200)
+        if len(config.top10[0]) != 0:
+            contador = 1
+            tk.Label(top_facil,text="JUGADOR",font=mayor_menor_font).grid(row=0,column=1)
+            tk.Label(top_facil,text="TIEMPO",font=mayor_menor_font).grid(row=0,column=2)
+            for jugador in config.top10[0]:
+                horas = jugador[0]//3600
+                tiempo_restante = jugador[0]%3600
+                minutos = tiempo_restante//60
+                segundos = tiempo_restante%60
+                tiempo = "{:02d}:{:02d}:{:02d}".format(horas,minutos,segundos)
+                tk.Label(top_facil,text=str(contador)+".",font=mayor_menor_font).grid(row=contador,column=0)
+                tk.Label(top_facil,text=jugador[1],font=mayor_menor_font).grid(row=contador,column=1)
+                tk.Label(top_facil,text=tiempo,font=mayor_menor_font).grid(row=contador,column=2)
+                contador += 1
+        
+        if len(config.top10[1]) != 0:
+            contador = 1
+            tk.Label(top_intermedio,text="JUGADOR",font=mayor_menor_font).grid(row=0,column=1)
+            tk.Label(top_intermedio,text="TIEMPO",font=mayor_menor_font).grid(row=0,column=2)
+            for jugador in config.top10[1]:
+                horas = jugador[0]//3600
+                tiempo_restante = jugador[0]%3600
+                minutos = tiempo_restante//60
+                segundos = tiempo_restante%60
+                tiempo = "{:02d}:{:02d}:{:02d}".format(horas,minutos,segundos)
+                tk.Label(top_intermedio,text=str(contador)+".",font=mayor_menor_font).grid(row=contador,column=0)
+                tk.Label(top_intermedio,text=jugador[1],font=mayor_menor_font).grid(row=contador,column=1)
+                tk.Label(top_intermedio,text=tiempo,font=mayor_menor_font).grid(row=contador,column=2)
+                contador += 1
+        
+        if len(config.top10[2]) != 0:
+            contador = 1
+            tk.Label(top_dificil,text="JUGADOR",font=mayor_menor_font).grid(row=0,column=1)
+            tk.Label(top_dificil,text="TIEMPO",font=mayor_menor_font).grid(row=0,column=2)
+            for jugador in config.top10[2]:
+                horas = jugador[0]//3600
+                tiempo_restante = jugador[0]%3600
+                minutos = tiempo_restante//60
+                segundos = tiempo_restante%60
+                tiempo = "{:02d}:{:02d}:{:02d}".format(horas,minutos,segundos)
+                tk.Label(top_dificil,text=str(contador)+".",font=mayor_menor_font).grid(row=contador,column=0)
+                tk.Label(top_dificil,text=jugador[1],font=mayor_menor_font).grid(row=contador,column=1)
+                tk.Label(top_dificil,text=tiempo,font=mayor_menor_font).grid(row=contador,column=2)
+                contador += 1
+
 
 
 class Digitos(tk.Frame):
@@ -548,13 +605,17 @@ class Botones(tk.Frame):
 
         tk.Label(self,text="",width=2).grid(row=0,column=7)
 
-        tk.Button(self,text="TOP\n10",bg="yellow",font=fontbotones,width=9).grid(row=0,column=8)
+        tk.Button(self,text="TOP\n10",bg="yellow",font=fontbotones,width=9,command=self.master.abrirTop10).grid(row=0,column=8)
 
 
     def iniciarJuego(self):
         if self.master.nombre_jugador.get() == "":
             messagebox.showerror("ERROR","POR FAVOR COLOQUE SU NOMBRE ANTES DE EMPEZAR")
             return
+        if self.master.revisarNombres(self.master.nombre_jugador.get()):
+            messagebox.showerror("ERROR","EL NOMBRE YA EXISTE EN EL TOP10, POR FAVOR ELEGIR OTRO")
+            return
+
         self.master.en_progreso = True
         self.master.guardar['state'] = tk.NORMAL
         self.master.cargar['state'] = tk.DISABLED
@@ -675,6 +736,9 @@ class Juego(tk.Frame):
             x_digitos = 510
             y_digitos = 180
         
+        self.rowconfigure(0,weight=1)
+        self.columnconfigure(0,weight=1)
+
         self.WindowManager = manager
         
         self.digitos = Digitos(self)
@@ -706,9 +770,21 @@ class Juego(tk.Frame):
 
         self.cargar = tk.Button(self,text="CARGAR JUEGO",font=("times",14),width=15,command=self.cargarJuego)
         self.cargar.place(x=1450,y=950)
+    
+    def revisarNombres(self,nombre):
+        for dificultad in config.top10:
+            for jugador in dificultad:
+                if jugador[1] == nombre:
+                    return True
+        return False
+
+    def abrirTop10(self):
+        self.top10 = Top10(self)
+        self.top10.grid(row=0,column=0,sticky="nswe")
+    def cerrarTop10(self):
+        self.top10.destroy()
 
     def mostarReloj(self):
-        
         if config.reloj != 1:
             self.reloj.place(x=90,y=915)
 
@@ -785,6 +861,10 @@ class Juego(tk.Frame):
         nombre_jugador = pickle.load(archivo_juego)
         self.panel.ctrlz = pickle.load(archivo_juego)
         archivo_juego.close()
+
+        if self.revisarNombres(nombre_jugador):
+            messagebox.showerror("ERROR","EL NOMBRE DE ESTA PARTIDA YA EXISTE EN EL TOP POR ENDE NO PUEDE CARGARSE")
+            return
 
         for fila in range(5):
             for columna in range(5):
