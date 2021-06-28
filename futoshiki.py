@@ -261,10 +261,10 @@ def guardar_top():
         archivo_top.close()
         
         archivo_configuracion = open("futoshiki2021configuración.dat","wb")
-        pickle.dump(config.dificultad,archivo_top)
-        pickle.dump(config.reloj,archivo_top)
-        pickle.dump(config.tiempo_reloj,archivo_top)
-        pickle.dump(config.posicion,archivo_top)
+        pickle.dump(config.dificultad,archivo_configuracion)
+        pickle.dump(config.reloj,archivo_configuracion)
+        pickle.dump(config.tiempo_reloj,archivo_configuracion)
+        pickle.dump(config.posicion,archivo_configuracion)
         archivo_configuracion.close()
 
         ventana.destroy()
