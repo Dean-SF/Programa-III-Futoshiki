@@ -32,5 +32,16 @@ try:
     archivo_top = open("futoshiki2021top10.dat","rb")
     config.top10 = pickle.load(archivo_top)
     archivo_top.close()
+
+    
+except:
+    pass
+try:
+    archivo_configuracion = open("futoshiki2021configuración.dat","wb")
+    config.dificultad = pickle.load(archivo_configuracion)
+    config.reloj = pickle.load(archivo_configuracion)
+    config.tiempo_reloj = pickle.load(archivo_configuracion)
+    config.posicion = pickle.load(archivo_configuracion)
+    archivo_configuracion.close
 except:
     pass

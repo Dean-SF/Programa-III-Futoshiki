@@ -63,7 +63,7 @@ class Ventana_configuracion(tk.Frame):
         self.dificultadInicial()
 
 
-        tk.Label(self,text="1. Reloj:").grid(row=3,column=0,sticky="w")
+        tk.Label(self,text="2. Reloj:").grid(row=3,column=0,sticky="w")
         self.reloj_si = tk.IntVar()
         tk.Checkbutton(self,text="Si",variable=self.reloj_si,command=self.cambioRelojSi).grid(row=3,column=1,sticky="w")
 
@@ -259,6 +259,14 @@ def guardar_top():
         archivo_top = open("futoshiki2021top10.dat","wb")
         pickle.dump(config.top10,archivo_top)
         archivo_top.close()
+        
+        archivo_configuracion = open("futoshiki2021configuración.dat","wb")
+        pickle.dump(config.dificultad,archivo_top)
+        pickle.dump(config.reloj,archivo_top)
+        pickle.dump(config.tiempo_reloj,archivo_top)
+        pickle.dump(config.posicion,archivo_top)
+        archivo_configuracion.close()
+
         ventana.destroy()
 
 ############################################### Programa principal ##########################################
