@@ -37,7 +37,7 @@ try:
 except:
     pass
 try:
-    archivo_configuracion = open("futoshiki2021configuración.dat","wb")
+    archivo_configuracion = open("futoshiki2021configuración.dat","rb")
     config.dificultad = pickle.load(archivo_configuracion)
     config.reloj = pickle.load(archivo_configuracion)
     config.tiempo_reloj = pickle.load(archivo_configuracion)
