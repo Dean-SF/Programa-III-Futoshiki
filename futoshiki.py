@@ -1,10 +1,10 @@
 ################################################## Imports ##################################################
 import tkinter as tk
 from tkinter import messagebox
-from tkinter.constants import TRUE
 from juego.jugar import Juego
 from juego.config import config
 import pickle
+import subprocess
 ################################################### Clases ##################################################
 # Clase de control de ventanas
 class Generador():
@@ -296,7 +296,7 @@ tk.Label(menu).grid(row=1,column=0)
 # Opciones del menu
 tk.Button(menu,text="JUGAR",font=("Papyrus"),width=10,height=1,command=WindowManager.abrirJuego).grid(row=2,column=0)
 tk.Button(menu,text="Configurar",font=("Papyrus"),width=10,height=1,command=WindowManager.abrirConfiguracion).grid(row=3,column=0)
-tk.Button(menu,text="Ayuda",font=("Papyrus"),width=10,height=1).grid(row=4,column=0)
+tk.Button(menu,text="Ayuda",font=("Papyrus"),width=10,height=1,command=lambda:subprocess.Popen("manual_de_usuario_futoshiki.pdf",shell=True)).grid(row=4,column=0)
 tk.Button(menu,text="Acerca de",font=("Papyrus"),width=10,height=1,command=lambda:messagebox.showinfo("Acerca de","FUTOSHIKI\nVer. 1.0 \
 \nCreador: Deyan Sanabria\nFecha de creación: 4 de Junio del 2021")).grid(row=5,column=0)
 
