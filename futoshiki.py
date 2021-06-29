@@ -304,4 +304,3 @@ tk.Button(menu,text="Acerca de",font=("Papyrus"),width=10,height=1,command=lambd
 ventana.protocol("WM_DELETE_WINDOW",guardar_top)
 
 ventana.mainloop() # Loop de ventana para eventos
-
